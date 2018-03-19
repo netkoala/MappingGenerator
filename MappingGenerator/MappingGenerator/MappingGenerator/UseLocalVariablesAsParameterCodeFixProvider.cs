@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Collections.Immutable;
 using System.Linq;
@@ -29,6 +27,8 @@ namespace MappingGenerator
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            //var a = new CodeActionWithOptions();
+            //https://github.com/dotnet/roslyn/tree/6847f1e5a909395aae9456e8f366cbf4deb86b69/src/VisualStudio/Core/Def/Implementation/ChangeSignature
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics.First();
             var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
