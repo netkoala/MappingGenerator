@@ -14,12 +14,20 @@ namespace MappingGenerator.MethodHelpers
             var overloadParameterSets = methodSymbol.DeclaringSyntaxReferences.Select(ds =>
             {
                 var overloadDeclaration = (MethodDeclarationSyntax) ds.GetSyntax();
-                var overloadMethod = semanticModel.GetDeclaredSymbol(overloadDeclaration);
+                var overloadMethod = semanticModel.GetSyntaxTreeSemanticModel(overloadDeclaration).GetDeclaredSymbol(overloadDeclaration);
                 return overloadMethod.Parameters;
             });
             return overloadParameterSets;
         }
        
+        private static SemanticModel GetSyntaxTreeSemanticModel(this SemanticModel model, SyntaxNode node)
+        {
+            // See https://github.com/dotnet/roslyn/issues/18730
+            return model.SyntaxTree == node.SyntaxTree
+                ? model
+                : model.Compilation.GetSemanticModel(node.SyntaxTree);
+        }
+
 
         public static MatchedParameterList FindBestParametersMatch(IMappingSourceFinder mappingSourceFinder, IEnumerable<ImmutableArray<IParameterSymbol>> overloadParameterSets)
         {

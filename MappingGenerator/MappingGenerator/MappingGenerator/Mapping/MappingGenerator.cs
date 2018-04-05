@@ -121,6 +121,11 @@ namespace MappingGenerator
 
         public IEnumerable<SyntaxNode> Map(MappingElement source, MappingElement target)
         {
+            if (source == null || target == null)
+            {
+                yield break;
+            }
+
             if (IsMappingBetweenCollections(target.ExpressionType, source.ExpressionType))
             {
                 var collectionMapping = MapCollections(source.Expression, source.ExpressionType, target.ExpressionType);

@@ -8,11 +8,6 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace MappingGenerator
 {
-    public interface IMappingSourceFinder
-    {
-        MappingElement FindMappingSource(string targetName, ITypeSymbol targetType);
-    }
-
     public class ObjectMembersMappingSourceFinder : IMappingSourceFinder
     {
         private readonly ITypeSymbol sourceType;

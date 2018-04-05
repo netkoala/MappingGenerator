@@ -4,6 +4,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MappingGenerator.Mapping;
+using MappingGenerator.Mapping.TargetProviders;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -84,23 +86,12 @@ namespace MappingGenerator
                 return mappingGenerator.MapTypes(source.Type, target.Type, generator.IdentifierName(source.Name), generator.IdentifierName(target.Name), targetExists: true);
             }
 
-            var isMultiParameterConstructor = SymbolHelper.IsMultiParameterUpdateThisObjectFunction(methodSymbol);
-            if (isMultiParameterConstructor || SymbolHelper.IsMultiParameterMappingConstructor(methodSymbol))
+            var isMultiParameterConstructor = SymbolHelper.IsMultiParameterMappingConstructor(methodSymbol);
+            if (isMultiParameterConstructor || SymbolHelper.IsMultiParameterUpdateThisObjectFunction(methodSymbol))
             {
                 var sourceFinder = new LocalScopeMappingSourceFinder(semanticModel, methodSymbol.Parameters);
-                return ObjectHelper.GetPublicPropertySymbols(methodSymbol.ContainingType)
-                .Where(property => property.SetMethod != null || (property.CanBeSetOnlyFromConstructor() && isMultiParameterConstructor))
-                .Select(property => new
-                {
-                    source = sourceFinder.FindMappingSource(property.Name, property.Type),
-                    target = new MappingElement()
-                    {
-                        Expression = SyntaxFactory.IdentifierName(property.Name),
-                        ExpressionType = property.Type
-                    }
-                })
-                .Where(x=>x.source!=null)
-                .SelectMany(pair => mappingGenerator.Map(pair.source, pair.target));
+                var targetProvider = new ObjectPropertiesTargetProvider(methodSymbol.ContainingType, true, isMultiParameterConstructor);
+                return Mapper.Map(sourceFinder, targetProvider).SelectMany(pair => mappingGenerator.Map(pair.Source, pair.Target));
             }
             return Enumerable.Empty<SyntaxNode>();
         }
